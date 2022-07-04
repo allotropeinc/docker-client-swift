@@ -39,12 +39,3 @@ struct WaitContainerEndpoint: Endpoint {
 	}
 }
 
-/// The structure of a response to a Container's `wait` call.
-public struct ExitResponse: Codable {
-	/// The returned status code.
-	let statusCode: Int
-	/// The error message the container returned (if any).
-	var errorMessage: String?
-}
-
-

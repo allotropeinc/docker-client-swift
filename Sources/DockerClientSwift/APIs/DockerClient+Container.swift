@@ -75,10 +75,10 @@ extension DockerClient {
 		///   - exitCondition: An `ExitCondition` to wait for. Defaults to `.notRunning`.
 		/// - Throws: Errors that can occur when executing the request.
 		/// - Returns: Returns an `EventLoopFuture` when the container is stopped.
-		public func wait(container: Container, exitCondition: Container.ExitCondition = .notRunning) throws -> EventLoopFuture<ExitResponse> {
+		public func wait(container: Container, exitCondition: Container.ExitCondition = .notRunning) throws -> EventLoopFuture<Container.ExitResponse> {
 			return try client.run(WaitContainerEndpoint(containerId: container.id.value, exitCondition: exitCondition))
 				.map({ response in
-					return ExitResponse(statusCode: response.StatusCode, errorMessage: response.Error?.Message)
+					return Container.ExitResponse(statusCode: response.StatusCode, errorMessage: response.Error?.Message)
 				})
 		}
 
@@ -199,5 +199,13 @@ extension Container {
 		case nextExit = "next-exit"
 		/// Wait for the container to be removed.\
 		case removed = "removed"
+	}
+
+	/// The structure of a response to a Container's `wait` call.
+	public struct ExitResponse: Codable {
+		/// The returned status code.
+		public let statusCode: Int
+		/// The error message the container returned (if any).
+		public let errorMessage: String?
 	}
 }
