@@ -2,7 +2,7 @@ import NIOHTTP1
 
 /// An Endpoint object that describes the container waiting endpoint.
 struct WaitContainerEndpoint: Endpoint {
-	typealias Response = CreateContainerResponse
+	typealias Response = WaitContainerResponse
 	typealias Body = NoBody
 	var method: HTTPMethod = .POST
 
@@ -25,11 +25,11 @@ struct WaitContainerEndpoint: Endpoint {
 	}
 
 	/// The structure of a successful status response.
-	struct CreateContainerResponse: Codable {
-		/// The returned status.
+	struct WaitContainerResponse: Codable {
+		/// The returned status code.
 		let StatusCode: Int
 		/// The error the container returned (if any).
-		var Error: Error
+		var Error: Error?
 
 		/// A helper struct for containing errors the container itself returns.
 		struct Error: Codable {
@@ -38,3 +38,13 @@ struct WaitContainerEndpoint: Endpoint {
 		}
 	}
 }
+
+/// The structure of a response to a Container's `wait` call.
+public struct ExitResponse: Codable {
+	/// The returned status code.
+	let statusCode: Int
+	/// The error message the container returned (if any).
+	var errorMessage: String?
+}
+
+

@@ -75,9 +75,11 @@ extension DockerClient {
 		///   - exitCondition: An `ExitCondition` to wait for. Defaults to `.notRunning`.
 		/// - Throws: Errors that can occur when executing the request.
 		/// - Returns: Returns an `EventLoopFuture` when the container is stopped.
-		public func wait(container: Container, exitCondition: Container.ExitCondition = .notRunning) throws -> EventLoopFuture<Void> {
+		public func wait(container: Container, exitCondition: Container.ExitCondition = .notRunning) throws -> EventLoopFuture<ExitResponse> {
 			return try client.run(WaitContainerEndpoint(containerId: container.id.value, exitCondition: exitCondition))
-				.map({ _ in Void() })
+				.map({ response in
+					return ExitResponse(statusCode: response.StatusCode, errorMessage: response.Error?.Message)
+				})
 		}
 
         /// Removes an existing container.
@@ -177,7 +179,7 @@ extension Container {
 	///   - exitCondition: An `ExitCondition` to wait for. Defaults to `.notRunning`
 	/// - Throws: Errors that can occur when executing the request.
 	/// - Returns: Returns an `EventLoopFuture` when the container exits.
-	public func wait(on client: DockerClient, exitCondition: ExitCondition = .notRunning) throws -> EventLoopFuture<Void> {
+	public func wait(on client: DockerClient, exitCondition: ExitCondition = .notRunning) throws -> EventLoopFuture<ExitResponse> {
 		try client.containers.wait(container: self, exitCondition: exitCondition)
 	}
 
