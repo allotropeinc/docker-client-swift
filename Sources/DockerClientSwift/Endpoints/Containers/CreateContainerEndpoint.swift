@@ -1,6 +1,6 @@
 import NIOHTTP1
 
-/// An Endpoint object that describes lets you
+/// An Endpoint object that describes the container creation endpoint.
 struct CreateContainerEndpoint: Endpoint {
     var body: CreateContainerBody?
     
