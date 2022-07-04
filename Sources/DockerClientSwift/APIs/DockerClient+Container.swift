@@ -39,10 +39,10 @@ extension DockerClient {
 		///   - bindings: The directories (if any) to bind to the container in `/host/dir/:/container/dir/` format. Defaults `nil`.
         /// - Throws: Errors that can occur when executing the request.
         /// - Returns: Returns an `EventLoopFuture` of a `Container`.
-		public func createContainer(image: Image, commands: [String]?=nil, bindings: [String]?=nil) throws -> EventLoopFuture<Container> {
+		public func createContainer(image: Image, commands: [String]?=nil, binds: [String]?=nil) throws -> EventLoopFuture<Container> {
 			var hostConfig: CreateContainerEndpoint.CreateContainerBody.HostConfig? = nil
-			if let bindings = bindings {
-				hostConfig = .init(Binds: bindings)
+			if let binds = binds {
+				hostConfig = .init(Binds: binds)
 			}
 
 			return try client.run(CreateContainerEndpoint(imageName: image.id.value, commands: commands, hostConfig: hostConfig))
