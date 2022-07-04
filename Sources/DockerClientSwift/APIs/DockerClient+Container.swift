@@ -60,7 +60,7 @@ extension DockerClient {
                 .map({ _ in Void() })
         }
         
-        /// Stops a container. Before stopping it needs to be created and started..
+        /// Stops a container. Before stopping it needs to be created and started.
         /// - Parameter container: Instance of a started `Container`.
         /// - Throws: Errors that can occur when executing the request.
         /// - Returns: Returns an `EventLoopFuture` when the container is stopped.
@@ -68,7 +68,16 @@ extension DockerClient {
             return try client.run(StopContainerEndpoint(containerId: container.id.value))
                 .map({ _ in Void() })
         }
-        
+
+		/// Waits for a container to exit. Before waiting it needs to be created and started.
+		/// - Parameter container: Instance of a started `Container`.
+		/// - Throws: Errors that can occur when executing the request.
+		/// - Returns: Returns an `EventLoopFuture` when the container is stopped.
+		public func wait(container: Container) throws -> EventLoopFuture<Void> {
+			return try client.run(WaitContainerEndpoint(containerId: container.id.value))
+				.map({ _ in Void() })
+		}
+
         /// Removes an existing container.
         /// - Parameter container: Instance of an existing `Container`.
         /// - Throws: Errors that can occur when executing the request.
