@@ -69,12 +69,14 @@ extension DockerClient {
                 .map({ _ in Void() })
         }
 
-		/// Waits for a container to exit. Before waiting it needs to be created and started.
-		/// - Parameter container: Instance of a started `Container`.
+		/// Waits for a container to achieve a specified `exitCondition`. Before waiting it needs to be created and started.
+		/// - Parameter
+		///   - container: Instance of a started `Container`.
+		///   - exitCondition: An `ExitCondition` to wait for. Defaults to `.notRunning`.
 		/// - Throws: Errors that can occur when executing the request.
 		/// - Returns: Returns an `EventLoopFuture` when the container is stopped.
-		public func wait(container: Container) throws -> EventLoopFuture<Void> {
-			return try client.run(WaitContainerEndpoint(containerId: container.id.value))
+		public func wait(container: Container, exitCondition: Container.ExitCondition = .notRunning) throws -> EventLoopFuture<Void> {
+			return try client.run(WaitContainerEndpoint(containerId: container.id.value, exitCondition: exitCondition))
 				.map({ _ in Void() })
 		}
 
@@ -161,14 +163,24 @@ extension Container {
         try client.containers.stop(container: self)
     }
     
-    /// Removes a container
+    /// Removes a container.
     /// - Parameter client: A `DockerClient` instance that is used to perform the request.
     /// - Throws: Errors that can occur when executing the request.
     /// - Returns: Returns an `EventLoopFuture` when the container is removed.
     public func remove(on client: DockerClient) throws -> EventLoopFuture<Void> {
         try client.containers.remove(container: self)
     }
-    
+
+	/// Waits for a container to achieve a specified `exitCondition`.
+	/// - Parameter
+	///   - client: A `DockerClient` instance that is used to perform the request.
+	///   - exitCondition: An `ExitCondition` to wait for. Defaults to `.notRunning`
+	/// - Throws: Errors that can occur when executing the request.
+	/// - Returns: Returns an `EventLoopFuture` when the container exits.
+	public func wait(on client: DockerClient, exitCondition: ExitCondition = .notRunning) throws -> EventLoopFuture<Void> {
+		try client.containers.wait(container: self, exitCondition: exitCondition)
+	}
+
     /// Gets the logs of a container as plain text. This function does not return future log statements but only the once that happen until now.
     /// - Parameter client: A `DockerClient` instance that is used to perform the request.
     /// - Throws: Errors that can occur when executing the request.
@@ -176,4 +188,14 @@ extension Container {
     public func logs(on client: DockerClient) throws -> EventLoopFuture<String> {
         try client.containers.logs(container: self)
     }
+
+	/// The conditions on which you can wait for a container to arrive at.
+	public enum ExitCondition: String, Codable {
+		/// Wait for the container to no longer be running.
+		case notRunning = "not-running"
+		/// Wait for the container to exit.
+		case nextExit = "next-exit"
+		/// Wait for the container to be removed.\
+		case removed = "removed"
+	}
 }

@@ -9,29 +9,19 @@ struct WaitContainerEndpoint: Endpoint {
 	/// The ID of the container to wait for.
 	private let id: String
 	/// The condition to wait for the container to achieve.
-	private let exitCondition: ExitCondition
+	private let exitCondition: Container.ExitCondition
 
 	/// Initialize the endpoint object with the necessary data to make the request.
 	/// - Parameters:
 	///   - containerId: The ID of name of the container to wait for.
 	///   - exitCondition: The condition to wait for the container to arrive at. Defaults to `.notRunning`.
-	init(containerId: String, exitCondition: ExitCondition = .notRunning) {
+	init(containerId: String, exitCondition: Container.ExitCondition = .notRunning) {
 		self.id = containerId
 		self.exitCondition = exitCondition
 	}
 
 	var path: String {
 		"containers/\(id)/wait"
-	}
-
-	/// The conditions on which you can wait for a container to arrive at.
-	enum ExitCondition: String, Codable {
-		/// Wait for the container to no longer be running.
-		case notRunning = "not-running"
-		/// Wait for the container to exit.
-		case nextExit = "next-exit"
-		/// Wait for the container to be removed.\
-		case removed = "removed"
 	}
 
 	/// The structure of a successful status response.
