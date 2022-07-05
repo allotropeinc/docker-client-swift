@@ -30,7 +30,7 @@ struct InspectContainerEndpoint: Endpoint {
         }
         
         struct ConfigResponse: Codable {
-            let Cmd: [String]
+            let Cmd: [String]?
         }
     }
 }
