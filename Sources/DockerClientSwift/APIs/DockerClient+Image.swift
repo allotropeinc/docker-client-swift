@@ -10,16 +10,32 @@ extension DockerClient {
     
     public struct ImagesAPI {
         fileprivate var client: DockerClient
-        
+
+		/// Pulls an image by it's name. If a tag or digest is specified these are fetched as well.
+		/// If you want to customize the identifier of the image you can use `pullImage(byIdentifier:)` to do this.
+		/// - Parameters:
+		///   - name: Image name that is fetched
+		///   - tag: Optional tag name. Default is `nil`.
+		///   - digest: Optional digest value. Default is `nil`.
+		/// - Throws: Errors that can occur when executing the request.
+		/// - Returns: Fetches the latest image information and returns an `EventLoopFuture` with the `Image` that has been fetched.
+		public func pullImage(byName name: String, tag: String?=nil, digest: Digest?=nil) throws -> EventLoopFuture<Image> {
+			/// Hack to make the type system happy.
+			let authenticator: NoAuthenticator? = nil
+
+			return try pullImage(byName: name, tag: tag, digest: digest, authenticator: authenticator)
+		}
+
         /// Pulls an image by it's name. If a tag or digest is specified these are fetched as well.
         /// If you want to customize the identifier of the image you can use `pullImage(byIdentifier:)` to do this.
         /// - Parameters:
         ///   - name: Image name that is fetched
         ///   - tag: Optional tag name. Default is `nil`.
         ///   - digest: Optional digest value. Default is `nil`.
+		///   - authenticator: Optional registry authenticator. Default is `nil`.
         /// - Throws: Errors that can occur when executing the request.
         /// - Returns: Fetches the latest image information and returns an `EventLoopFuture` with the `Image` that has been fetched.
-        public func pullImage(byName name: String, tag: String?=nil, digest: Digest?=nil) throws -> EventLoopFuture<Image> {
+		public func pullImage<A: RegistryAuthenticator>(byName name: String, tag: String?=nil, digest: Digest?=nil, authenticator: A? = nil) throws -> EventLoopFuture<Image> {
             var identifier = name
             if let tag = tag {
                 identifier += ":\(tag)"
@@ -27,15 +43,28 @@ extension DockerClient {
             if let digest = digest {
                 identifier += "@\(digest.rawValue)"
             }
-            return try pullImage(byIdentifier: identifier)
+            return try pullImage(byIdentifier: identifier, authenticator: authenticator)
         }
-        
+
+		/// Pulls an image by a given identifier. The identifier can be build manually.
+		/// - Parameter identifier: Identifier of an image that is pulled.
+		/// - Throws: Errors that can occur when executing the request.
+		/// - Returns: Fetches the latest image information and returns an `EventLoopFuture` with the `Image` that has been fetched.
+		public func pullImage(byIdentifier identifier: String) throws -> EventLoopFuture<Image> {
+			/// Hack to make the type system happy.
+			let authenticator: NoAuthenticator? = nil
+
+			return try pullImage(byIdentifier: identifier, authenticator: authenticator)
+		}
+
         /// Pulls an image by a given identifier. The identifier can be build manually.
-        /// - Parameter identifier: Identifier of an image that is pulled.
+        /// - Parameter
+		///   - identifier: Identifier of an image that is pulled.
+		///   - authenticator: Optional registry authenticator. Default value is `nil`.
         /// - Throws: Errors that can occur when executing the request.
         /// - Returns: Fetches the latest image information and returns an `EventLoopFuture` with the `Image` that has been fetched.
-        public func pullImage(byIdentifier identifier: String) throws -> EventLoopFuture<Image> {
-            return try client.run(PullImageEndpoint(imageName: identifier))
+		public func pullImage<A: RegistryAuthenticator>(byIdentifier identifier: String, authenticator: A? = nil) throws -> EventLoopFuture<Image> {
+            return try client.run(PullImageEndpoint(imageName: identifier), authenticator: authenticator)
                 .flatMap({ _ in
                     try self.get(imageByNameOrId: identifier)
                 })
