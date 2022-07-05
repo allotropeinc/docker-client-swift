@@ -1,4 +1,5 @@
 import Foundation
+import AsyncHTTPClient
 
 /// A protocol for Docker registry credential storage .
 public protocol RegistryAuthenticator {
@@ -31,7 +32,7 @@ public struct PasswordAuthenticator: RegistryAuthenticator {
 	///   - password: The password used to authenticate with the registry.
 	///   - email: The email address (if any) used to authenticate with the registry.
 	///   - serverAddress: The address (without any protocol markers) of the server.
-	public init(username: String, password: String, email: String? = nil, serverAddress: String) {
+	public init(username: String, password: String, email: String, serverAddress: String) {
 		self.result = .init(
 			username: username,
 			password: password,
@@ -47,8 +48,8 @@ public struct PasswordAuthenticator: RegistryAuthenticator {
 		private var username: String
 		/// The password used to authenticate with the registry.
 		private var password: String
-		/// The email address (if any) used to authenticate with the registry.
-		private var email: String?
+		/// The email address used to authenticate with the registry.
+		private var email: String
 		/// The address (without any protocol markers) of the server.
 		private var serverAddress: String
 
@@ -60,7 +61,7 @@ public struct PasswordAuthenticator: RegistryAuthenticator {
 			case serverAddress = "serveraddress"
 		}
 
-		init(username: String, password: String, email: String? = nil, serverAddress: String) {
+		init(username: String, password: String, email: String, serverAddress: String) {
 			self.username = username
 			self.password = password
 			self.email = email
@@ -68,7 +69,6 @@ public struct PasswordAuthenticator: RegistryAuthenticator {
 		}
 	}
 }
-
 
 /// A stand-in type used only when an Authenticator type must be provided, but we can be sure it will be `nil` in practice.
 struct NoAuthenticator: RegistryAuthenticator {
