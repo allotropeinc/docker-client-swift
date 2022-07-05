@@ -31,7 +31,7 @@ public struct PasswordAuthenticator: RegistryAuthenticator {
 	///   - password: The password used to authenticate with the registry.
 	///   - email: The email address (if any) used to authenticate with the registry.
 	///   - serverAddress: The address (without any protocol markers) of the server.
-	init(username: String, password: String, email: String? = nil, serverAddress: String) {
+	public init(username: String, password: String, email: String? = nil, serverAddress: String) {
 		self.result = .init(
 			username: username,
 			password: password,
@@ -75,4 +75,6 @@ struct NoAuthenticator: RegistryAuthenticator {
 	public var result = NoBody()
 
 	public typealias AuthenticationResult = NoBody
+
+	public init() {}
 }
