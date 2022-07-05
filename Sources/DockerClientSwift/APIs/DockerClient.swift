@@ -27,16 +27,35 @@ public class DockerClient {
         try client.syncShutdown()
     }
     
-    /// Executes a request to a specific endpoint. The `Endpoint` struct provides all necessary data and parameters for the request.
-    /// - Parameter endpoint: `Endpoint` instance with all necessary data and parameters.
+    /// Executes a request to a specific endpoint. The `Endpoint` struct provides all necessary data and parameters for the request except for registry authentication, which is optionally handled by RegistryAuthenticator.
+    /// - Parameters
+	///   - endpoint: `Endpoint` instance with all necessary data and parameters.
+	///   - auth: `RegistryAuthenticator` to authenticate the request with (if any).
     /// - Throws: It can throw an error when encoding the body of the `Endpoint` request to JSON.
     /// - Returns: Returns an `EventLoopFuture` of the expected result definied by the `Endpoint`.
-    internal func run<T: Endpoint>(_ endpoint: T) throws -> EventLoopFuture<T.Response> {
+	internal func run<T: Endpoint, A: RegistryAuthenticator>(_ endpoint: T, authenticator: A? = nil) throws -> EventLoopFuture<T.Response> {
+		var headers = [("Content-Type", "application/json"), ("Host", "localhost")]
+		if let authenticator = authenticator {
+			headers.append(("X-Registry-Auth", try authenticator.encodedResult()))
+		}
+
         logger.info("Execute Endpoint: \(endpoint.path)")
-        return client.execute(endpoint.method, socketPath: daemonSocket, urlPath: "/v1.40/\(endpoint.path)", body: endpoint.body.map {HTTPClient.Body.data( try! $0.encode())}, logger: logger, headers: HTTPHeaders([("Content-Type", "application/json"), ("Host", "localhost")]))
+        return client.execute(endpoint.method, socketPath: daemonSocket, urlPath: "/v1.40/\(endpoint.path)", body: endpoint.body.map {HTTPClient.Body.data( try! $0.encode())}, logger: logger, headers: HTTPHeaders(headers))
             .logResponseBody(logger)
             .decode(as: T.Response.self)
     }
+
+	/// Executes a request to a specific endpoint. The `Endpoint` struct provides all necessary data and parameters for the request.
+	/// - Parameters
+	///   - endpoint: `Endpoint` instance with all necessary data and parameters.
+	/// - Throws: It can throw an error when encoding the body of the `Endpoint` request to JSON.
+	/// - Returns: Returns an `EventLoopFuture` of the expected result definied by the `Endpoint`.
+	internal func run<T: Endpoint>(_ endpoint: T) throws -> EventLoopFuture<T.Response> {
+		// Hack to make the type system happy with authenticators.
+		let authenticator: NoAuthenticator? = nil
+
+		return try self.run(endpoint, authenticator: authenticator)
+	}
     
     /// Executes a request to a specific endpoint. The `PipelineEndpoint` struct provides all necessary data and parameters for the request. The difference for between `Endpoint` and `EndpointPipeline` is that the second one needs to provide a function that transforms the response as a `String` to the expected result.
     /// - Parameter endpoint: `PipelineEndpoint` instance with all necessary data and parameters.
