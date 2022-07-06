@@ -42,9 +42,6 @@ public class DockerClient {
         logger.info("Execute Endpoint: \(endpoint.path)")
         return client.execute(endpoint.method, socketPath: daemonSocket, urlPath: "/v1.40/\(endpoint.path)", body: endpoint.body.map {HTTPClient.Body.data( try! $0.encode())}, logger: logger, headers: HTTPHeaders(headers))
             .logResponseBody(logger)
-			.always({ result in
-				print(result.bodyValue())
-			})
             .decode(as: T.Response.self)
     }
 

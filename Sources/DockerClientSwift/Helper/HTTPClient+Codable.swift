@@ -64,7 +64,11 @@ extension EventLoopFuture where Value == HTTPClient.Response {
                 throw BodyError.noBodyData
             }
             if T.self == String.self {
-                return String(data: bodyData, encoding: .utf8) as! T
+				guard let result = String(data: bodyData, encoding: .utf8) as? T else {
+					throw DockerError.message("Couldn't convert response to string.")
+				}
+
+				return result
             }
             return try decoder.decode(type, from: bodyData)
         }
